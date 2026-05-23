@@ -28,6 +28,12 @@ def stats(entries):
     return compute_stats(entries)
 
 
+@pytest.fixture
+def heatmap_grid(entries):
+    """Pre-built heatmap grid for the sample crontab entries."""
+    return build_heatmap_grid(entries)
+
+
 def test_integration_total_entries(stats):
     assert stats.total_entries == 4
 
@@ -54,9 +60,8 @@ def test_integration_format_stats_contains_total(stats):
     assert str(stats.total_entries) in result
 
 
-def test_integration_heatmap_grid_not_empty(entries):
-    grid = build_heatmap_grid(entries)
-    assert len(grid) > 0
+def test_integration_heatmap_grid_not_empty(heatmap_grid):
+    assert len(heatmap_grid) > 0
 
 
 def test_integration_heatmap_render_lines(entries):
@@ -66,8 +71,16 @@ def test_integration_heatmap_render_lines(entries):
     assert len(lines) >= 26
 
 
-def test_integration_healthcheck_appears_every_hour_every_day(entries):
+def test_integration_healthcheck_appears_every_hour_every_day(heatmap_grid):
     """healthcheck runs at 08:xx every day — grid should have count >= 1 for all days at hour 8."""
-    grid = build_heatmap_grid(entries)
     for day in range(7):
-        assert grid.get((8, day), 0) >= 1
+        assert heatmap_grid.get((8, day), 0) >= 1
+
+
+def test_integration_heatmap_grid_weekly_clean_sunday_only(heatmap_grid):
+    """weekly_clean runs at midnight on Sunday (day 0) only — other days should not have
+    an extra midnight entry beyond the healthcheck (which runs at hour 8, not 0)."""
+    # Sunday is day index 0; midnight entry should exist
+    assert heatmap_grid.get((0, 0), 0) >= 1
+    # Saturday (day 6) has no midnight job scheduled
+    assert heatmap_grid.get((0, 6), 0) == 0
