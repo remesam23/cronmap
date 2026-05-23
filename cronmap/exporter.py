@@ -9,6 +9,8 @@ from typing import Dict, List
 
 DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
+SUPPORTED_FORMATS = {"json", "csv"}
+
 
 def export_json(schedule: Dict[int, List[dict]]) -> str:
     """Serialize the weekly schedule to a JSON string."""
@@ -40,10 +42,25 @@ def export_csv(schedule: Dict[int, List[dict]]) -> str:
 
 
 def export_schedule(schedule: Dict[int, List[dict]], fmt: str) -> str:
-    """Dispatch to the appropriate exporter based on *fmt* ('json' or 'csv')."""
+    """Dispatch to the appropriate exporter based on *fmt* ('json' or 'csv').
+
+    Args:
+        schedule: Mapping of day index (0=Sunday … 6=Saturday) to a list of
+            event dicts, each containing 'hour', 'minute', and 'command' keys.
+        fmt: Output format; must be one of 'json' or 'csv' (case-insensitive).
+
+    Returns:
+        The serialized schedule as a string in the requested format.
+
+    Raises:
+        ValueError: If *fmt* is not a supported format.
+    """
     fmt = fmt.lower().strip()
     if fmt == "json":
         return export_json(schedule)
     if fmt == "csv":
         return export_csv(schedule)
-    raise ValueError(f"Unsupported export format: {fmt!r}. Choose 'json' or 'csv'.")
+    raise ValueError(
+        f"Unsupported export format: {fmt!r}. "
+        f"Choose one of: {', '.join(sorted(SUPPORTED_FORMATS))}."
+    )
