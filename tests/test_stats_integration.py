@@ -22,28 +22,36 @@ def entries():
     return parse_crontab(SAMPLE_CRONTAB)
 
 
-def test_integration_total_entries(entries):
-    stats = compute_stats(entries)
+@pytest.fixture
+def stats(entries):
+    """Pre-computed stats for the sample crontab entries."""
+    return compute_stats(entries)
+
+
+def test_integration_total_entries(stats):
     assert stats.total_entries == 4
 
 
-def test_integration_unique_commands(entries):
-    stats = compute_stats(entries)
+def test_integration_unique_commands(stats):
     assert stats.unique_commands == 4
 
 
-def test_integration_busiest_day_is_weekday(entries):
+def test_integration_busiest_day_is_weekday(stats):
     """Mon-Fri entries dominate, so busiest day should be a weekday."""
-    stats = compute_stats(entries)
     weekdays = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
     assert stats.busiest_day in weekdays
 
 
-def test_integration_format_stats_is_string(entries):
-    stats = compute_stats(entries)
+def test_integration_format_stats_is_string(stats):
     result = format_stats(stats)
     assert isinstance(result, str)
     assert len(result) > 0
+
+
+def test_integration_format_stats_contains_total(stats):
+    """Formatted stats output should mention the total entry count."""
+    result = format_stats(stats)
+    assert str(stats.total_entries) in result
 
 
 def test_integration_heatmap_grid_not_empty(entries):
