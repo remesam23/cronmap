@@ -25,6 +25,14 @@ class CronDiff:
             lines.append(f" {len(self.unchanged)} unchanged")
         return ", ".join(lines) if lines else "no changes"
 
+    def counts(self) -> dict:
+        """Return a dictionary with counts of added, removed, and unchanged entries."""
+        return {
+            "added": len(self.added),
+            "removed": len(self.removed),
+            "unchanged": len(self.unchanged),
+        }
+
 
 def _entry_key(entry: CronEntry) -> Tuple[str, str]:
     """Unique key for an entry based on schedule + command."""
